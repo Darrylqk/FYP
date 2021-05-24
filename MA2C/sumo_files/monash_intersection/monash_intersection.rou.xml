@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 03/17/21 03:54:20 by Eclipse SUMO netedit Version 1.7.0
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
+
+    <input>
+        <sumo-net-file value="D:\Monash\Year%204%20Sem%202%20(Mar%202021)\ECE4095%20-%20Project%20B\SUMO\test\monash_2%20T-junction.net.xml"/>
+    </input>
+
+    <output>
+        <output-file value="D:\Monash\Year%204%20Sem%202%20(Mar%202021)\ECE4095%20-%20Project%20B\SUMO\test\monash_2%20T-junction.net.xml"/>
+    </output>
+
+    <processing>
+        <geometry.min-radius.fix.railways value="false"/>
+        <geometry.max-grade.fix value="false"/>
+        <offset.disable-normalization value="true"/>
+        <lefthand value="false"/>
+    </processing>
+
+    <junctions>
+        <no-turnarounds value="true"/>
+        <junctions.corner-detail value="5"/>
+        <junctions.limit-turn-speed value="5.5"/>
+        <rectangular-lane-cut value="false"/>
+    </junctions>
+
+    <pedestrian>
+        <walkingareas value="false"/>
+    </pedestrian>
+
+    <netedit>
+        <route-files value="D:\Monash\Year%204%20Sem%202%20(Mar%202021)\ECE4095%20-%20Project%20B\SUMO\test\monash_2%20T-junction.rou.xml"/>
+    </netedit>
+
+    <report>
+        <aggregate-warnings value="5"/>
+    </report>
+
+</configuration>
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+	<vTypeDistribution id="dist0">
+		<vType id="car" latAlignment="center" probability="0.80" color="yellow" vClass="passenger"/>
+		<vType id="emergency" latAlignment="center" probability="0.05" guiShape="police" speedFactor="normc(1.50,0.00)" vClass="emergency"/>
+		<vType id="motor" latAlignment="compact" probability="0.15" color="red" vClass="motorcycle"/>
+	</vTypeDistribution>
+	<route edges="-l1.1 -l1.2 -l2" id="r01"/>
+    <route edges="-l1.1 -l1.2 -l3.1 -l3.2 -l3.3 -l5" id="r02"/>
+    <route edges="-l1.1 -l1.2 -l3.1 -l3.2 -l3.3 -l4" id="r03"/>
+    <route edges="l2.1 l2.2 l1" id="r10"/>
+    <route edges="l2.1 l2.2 -l3.1 -l3.2 -l3.3 -l5" id="r12"/>
+    <route edges="l2.1 l2.2 -l3.1 -l3.2 -l3.3 -l4" id="r13"/>
+    <route edges="l5.1 l5.2 l3.3 l3.2 l3.1 l1" id="r20"/>
+    <route edges="l5.1 l5.2 l3.3 l3.2 l3.1 -l2" id="r21"/>
+    <route edges="l5.1 l5.2 -l4" id="r23"/>
+    <route edges="l4.1 l4.2 l3.3 l3.2 l3.1 l1" id="r30"/>
+    <route edges="l4.1 l4.2 l3.3 l3.2 l3.1 -l2" id="r31"/>
+    <route edges="l4.1 l4.2 -l5" id="r32"/>
+    <flow id="flow_0" type="dist0" departLane="best" begin="0.00" route="r01" end="9999999999999" departSpeed="max" probability="0.0625"/>
+    <flow id="flow_1" type="dist0" departLane="best" begin="0.00" route="r02" end="9999999999999" departSpeed="max" probability="0.0625"/>
+    <flow id="flow_2" type="dist0" departLane="best" begin="0.00" route="r03" end="9999999999999" departSpeed="max" probability="0.0625"/>
+    <flow id="flow_3" type="dist0" departLane="best" begin="0.00" route="r10" end="9999999999999" departSpeed="max" probability="0.0625"/>
+    <flow id="flow_4" type="dist0" departLane="best" begin="0.00" route="r12" end="9999999999999" departSpeed="max" probability="0.0625"/>
+    <flow id="flow_5" type="dist0" departLane="best" begin="0.00" route="r13" end="9999999999999" departSpeed="max" probability="0.0625"/>
+    <flow id="flow_6" type="dist0" departLane="best" begin="0.00" route="r20" end="9999999999999" departSpeed="max" probability="0.0208"/>
+    <flow id="flow_7" type="dist0" departLane="best" begin="0.00" route="r21" end="9999999999999" departSpeed="max" probability="0.0208"/>
+    <flow id="flow_8" type="dist0" departLane="best" begin="0.00" route="r23" end="9999999999999" departSpeed="max" probability="0.0208"/>
+    <flow id="flow_9" type="dist0" departLane="best" begin="0.00" route="r30" end="9999999999999" departSpeed="max" probability="0.0417"/>
+    <flow id="flow_10" type="dist0" departLane="best" begin="0.00" route="r31" end="9999999999999" departSpeed="max" probability="0.0417"/>
+    <flow id="flow_11" type="dist0" departLane="best" begin="0.00" route="r32" end="9999999999999" departSpeed="max" probability="0.0417"/>
+</routes>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Wed May  5 04:57:52 2021 by Eclipse SUMO duarouter Version 1.9.0
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/duarouterConfiguration.xsd">
+
+    <input>
+        <net-file value="./sumo_files/monash_intersection/monash_intersection.net.xml"/>
+        <additional-files value="./sumo_files/monash_intersection/monash_intersection.add.xml"/>
+        <route-files value="./sumo_files/monash_intersection/trips.trips.xml"/>
+    </input>
+
+    <output>
+        <output-file value="./sumo_files/monash_intersection/monash_intersection9.rou.xml"/>
+        <vtype-output value="vtypeout.xml"/>
+        <alternatives-output value="./sumo_files/monash_intersection/monash_intersection9.rou.alt.xml"/>
+    </output>
+
+    <time>
+        <begin value="3200.0"/>
+        <end value="3600.0"/>
+    </time>
+
+    <report>
+        <no-warnings value="true"/>
+        <ignore-errors value="true"/>
+        <no-step-log value="true"/>
+    </report>
+
+</configuration>
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    <vType id="car" probability="0.80" vClass="passenger" color="yellow" latAlignment="center"/>
+    <vType id="motor" probability="0.15" vClass="motorcycle" color="red" latAlignment="compact"/>
+    <vType id="emergency" probability="0.05" speedFactor="normc(1.50,0.00)" vClass="emergency" guiShape="police" latAlignment="center"/>
+</routes>

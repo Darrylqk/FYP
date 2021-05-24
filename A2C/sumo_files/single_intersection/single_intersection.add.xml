@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<additional>
+	<vTypeDistribution id="dist0">
+		<vType id="car" latAlignment="center" probability="0.80" color="yellow" vClass="passenger"/>
+		<vType id="emergency" latAlignment="center" probability="0.05" guiShape="police" speedFactor="normc(1.50,0.00)" vClass="emergency"/>
+		<vType id="motor" latAlignment="compact" probability="0.15" color="red" vClass="motorcycle"/>
+	</vTypeDistribution>
+</additional>
