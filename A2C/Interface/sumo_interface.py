@@ -1,3 +1,5 @@
+# Adapted from: https://github.com/veryprofessionalusername/FYP-trafficDensityDetectionandManagement
+
 import glob
 import math as m
 import os
@@ -78,7 +80,6 @@ class sumoEnv(object):
         self.past_action = -1
         self.past_actions = []
 
-        #define step parameter
         self.maxSteps = maxEnvSteps
         self.previousSpeedModeChanged = []
 
