@@ -3,8 +3,6 @@ from numpy import mean
 import scipy
 import random
 
-from Utils.memory_buffer import MemoryBuffer
-from Utils.networks import tfSummary
 from tqdm import tqdm
 
 import os
@@ -34,7 +32,7 @@ def categorical_crossentropy(target, output):
     return (- target * tf.log(output))
 
 class A2C:
-    def __init__(self, state_dims, action_dims, frames, lanes, intersection, lr = 1e-4, architecture = "my_net" ):
+    def __init__(self, state_dims, action_dims, frames, lanes, intersection, lr = 1e-4):
 
         self.filename = "A2C_my_net"
         self.actions = action_dims
@@ -94,7 +92,7 @@ class A2C:
 
         return act, act_one_hot
 
-    def train(self, env, summary_writer, episodes = 10000, log = True, test = False):
+    def train(self, env, episodes = 10000):
         env.create_env_connection()
 
         tqdm_e = tqdm(range(episodes), desc='Score', leave=True, unit=" episodes")
@@ -153,19 +151,14 @@ class A2C:
                 td_target = np.array([reward]) + self.gamma*predict_next_reward
                 td_error = td_target - predict_reward
 
-                if not test:
-                    self.critic.train_on_batch(old_state, td_target)
+                
+                self.critic.train_on_batch(old_state, td_target)
 
-                    input_list = old_state[:]
-                    input_list.append(act_one_hot.copy())
-                    self.actor.train_on_batch(input_list,[self.dummy_act_picked,td_error])
+                input_list = old_state[:]
+                input_list.append(act_one_hot.copy())
+                self.actor.train_on_batch(input_list,[self.dummy_act_picked,td_error])
 
                 old_state = next_state
-
-            if log:
-                score = tfSummary('score', mean(mean_reward))
-                summary_writer.add_summary(score, global_step=e)
-                summary_writer.flush()
 
             tqdm_e.set_description("Score: " + str(mean(mean_reward)))
             tqdm_e.refresh()
@@ -205,7 +198,7 @@ class A2C:
 
         while not done:
             act, act_one_hot = self.policy_action(old_state, benchmark = True)
-            env.perform_actions(act, self.intersection, self.lanes, benchmark = False)
+            env.perform_actions(act, self.intersection, self.lanes)
             
             next_state, reward, done = env.step(self.lanes, frames = self.frames)
             t.append(traci.simulation.getTime())
@@ -216,6 +209,7 @@ class A2C:
             emergency_wait_time_temp = 0
             average_emergency_wait_time_temp = []
             emergency_veh_num_temp = 0
+            
             for lane in self.lanes:
                 veh_num_temp += traci.edge.getLastStepHaltingNumber(lane)
                 veh_list = traci.edge.getLastStepVehicleIDs(lane)

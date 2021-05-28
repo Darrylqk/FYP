@@ -24,18 +24,17 @@ print(keras.__version__)
 
 
 set_session(sess)
-summary_writer = tf.summary.FileWriter("./tensorboard_logs")
 
 architecture = 'my_net'
 
 demand = 1.0
-veh_rate = 5
+veh_rate = 2.0
 wandb.init(name=architecture + '_MA2C_monash_tp_' + str(veh_rate) + '_blind_reward', project='fyp')
 
 env = sumoEnv(gui=True, folder="monash_intersection",
               maxEnvSteps=3600, demand = demand,
-              randomizeRoutes=False, constant_demand = True, vehicle_rate = veh_rate)
+              constant_demand = True, vehicle_rate = veh_rate)
 
-agents = MA2C(env, 13, 3, 5, architecture=architecture)
-agents.train(summary_writer, log=True, test=False, episodes=10000)
+agents = MA2C(env, 13, 3, 5)
+agents.train(episodes=10000)
 

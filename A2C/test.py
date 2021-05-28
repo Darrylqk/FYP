@@ -34,9 +34,9 @@ architecture = 'my_net'
 demand = 1.0
 seed = 1
 
-env = sumoEnv(gui=False, folder="single_intersection", maxEnvSteps=3600, demand=demand , randomizeRoutes=False, seed = seed, constant_demand = True, vehicle_rate = 10)
+env = sumoEnv(gui=True, folder="single_intersection", maxEnvSteps=3600, demand=demand, seed = seed, constant_demand = True, vehicle_rate = 10)
 intersection = env.intersections[0]
-agent = A2C(17, 4, 5, env.networkDict[intersection], intersection, architecture=architecture)
+agent = A2C(17, 4, 5, env.networkDict[intersection], intersection)
 #env.create_env_connection()
 #env.restart_env()
 #env.close_env_connection()

@@ -3,8 +3,6 @@ from numpy import mean
 import scipy
 import random
 
-from utils.memory_buffer import MemoryBuffer
-from utils.networks import tfSummary
 from tqdm import tqdm
 
 import os
@@ -38,7 +36,7 @@ def categorical_crossentropy(target, output):
 
 
 class MA2C:
-    def __init__(self, env, state_dims, action_dims, frames, lr = 1e-4, architecture = "trafficnet" ):
+    def __init__(self, env, state_dims, action_dims, frames, lr = 1e-4):
 
         self.actions = action_dims
         self.states = state_dims
@@ -53,110 +51,36 @@ class MA2C:
 
         self.dummy_act_picked = np.zeros((1,self.actions)) #just a placeholder
 
-        self.agents = {i: self.create_actor_critic_model(architecture) for i in self.env.networkDict}
+        self.agents = {i: self.create_actor_critic_model() for i in self.env.networkDict}
 
-    def create_actor_critic_model(self, architecture):
+    def create_actor_critic_model(self):
         # Actor
         input_layer_1 = Input(shape=(self.frames, self.states))
         act_picked = Input(shape=(self.actions,))
 
-        if architecture == "my_net":
-            self.filename = "my_net"
-            x = Dense(256, activation='relu', kernel_regularizer = self.l2_reg)(input_layer_1)
-            x = LSTM(64, return_sequences=True, kernel_regularizer = self.l2_reg)(x)
-            y = Flatten()(x)
+        self.filename = "my_net"
+        x = Dense(256, activation='relu', kernel_regularizer = self.l2_reg)(input_layer_1)
+        x = LSTM(64, return_sequences=True, kernel_regularizer = self.l2_reg)(x)
+        y = Flatten()(x)
 
-            act_prob = Dense(self.actions,activation='softmax')(y)
+        act_prob = Dense(self.actions,activation='softmax')(y)
 
-            selected_act_prob = Multiply()([act_prob,act_picked])
-            selected_act_prob = Lambda(lambda x:K.sum(x, axis=-1, keepdims=True),output_shape=(1,))(selected_act_prob)
-                
-            actorModel = Model(inputs=[input_layer_1,act_picked], outputs=[act_prob, selected_act_prob])
+        selected_act_prob = Multiply()([act_prob,act_picked])
+        selected_act_prob = Lambda(lambda x:K.sum(x, axis=-1, keepdims=True),output_shape=(1,))(selected_act_prob)
             
-        elif architecture == "deep_trafficnet_PO4":
-            self.filename = "A2C_deep_TrafficNet_PO4"
-            input_layer_2 = Input(shape=(3*3,))
-
-            a = LSTM(16, return_sequences=True, kernel_regularizer = self.l2_reg)(input_layer_1)
-            a = Flatten()(a)
-            a = Dense(16, activation='relu', kernel_regularizer = self.l2_reg)(a)
-
-            b = Dense(16, activation='relu', kernel_regularizer = self.l2_reg)(input_layer_2)
-            b = Dense(16, activation='relu', kernel_regularizer = self.l2_reg)(b)
-
-            y = Concatenate()([a, b])
-            
-            for _ in range(2):
-                z = Dense(128,activation='relu', kernel_regularizer = self.l2_reg)(y)
-                z = Dropout(self.dropout_factor)(z)
-                z = Dense(64,activation='relu', kernel_regularizer = self.l2_reg)(z)
-                z = Dropout(self.dropout_factor)(z)
-                z = Dense(32,activation='relu', kernel_regularizer = self.l2_reg)(z)
-                y = Add()([y,z])
-
-            act_prob = Dense(self.actions,activation='softmax')(y)
-
-            selected_act_prob = Multiply()([act_prob,act_picked])
-            selected_act_prob = Lambda(lambda x:K.sum(x, axis=-1, keepdims=True),output_shape=(1,))(selected_act_prob)
-        
-            actorModel = Model(inputs=[input_layer_1, input_layer_2, act_picked], outputs=[act_prob, selected_act_prob])
-
+        actorModel = Model(inputs=[input_layer_1,act_picked], outputs=[act_prob, selected_act_prob])
+           
         opt = Adam(lr=self.actor_learning_rate, amsgrad=True)
         actorModel.compile(loss=['mse',categorical_crossentropy], loss_weights=[0.0,1.0],optimizer=opt) #we dont care about mse loss, it's just a placeholder
         actor = actorModel
 
         # Critic
         input_layer_1 = Input(shape=(self.frames, self.states))
-        if architecture == "my_net":
-            x = Dense(256, activation='relu', kernel_regularizer = self.l2_reg)(input_layer_1)
-            x = LSTM(64, return_sequences=True, kernel_regularizer = self.l2_reg)(x)
-            y = Flatten()(x)
-            output_critic = Dense(1, activation='linear')(y)
-            criticModel = Model(inputs=input_layer_1 , outputs=output_critic)
-
-        elif architecture == "deep_trafficnet_PO4":
-            input_layer_2 = Input(shape=(3*3,))
-            a = LSTM(16, return_sequences=True, kernel_regularizer = self.l2_reg)(input_layer_1)
-            a = Flatten()(a)
-            a = Dense(16, activation='relu', kernel_regularizer = self.l2_reg)(a)
-            a = Dropout(self.dropout_factor)(a)
-
-            b = Dense(16, activation='relu', kernel_regularizer = self.l2_reg)(input_layer_2)
-            b = Dense(16, activation='relu', kernel_regularizer = self.l2_reg)(b)
-            b = Dropout(self.dropout_factor)(b)
-
-            x = Concatenate()([a, b])
-
-            op_1 = Dense(32,activation='relu', kernel_regularizer = self.l2_reg)(x)
-
-            op_2 = Dense(32,activation='relu', kernel_regularizer = self.l2_reg)(x)
-            op_2 = Dropout(self.dropout_factor)(op_2)
-            op_2 = Dense(64,activation='relu', kernel_regularizer = self.l2_reg)(op_2)
-
-            op_3 = Dense(32,activation='relu', kernel_regularizer = self.l2_reg)(x)
-            op_3 = Dropout(self.dropout_factor)(op_3)
-            op_3 = Dense(64,activation='relu', kernel_regularizer = self.l2_reg)(op_3)
-            op_3 = Dropout(self.dropout_factor)(op_3)
-            op_3 = Dense(128,activation='relu', kernel_regularizer = self.l2_reg)(op_3)
-
-            op_4 = Dense(32,activation='relu', kernel_regularizer = self.l2_reg)(x)
-            op_4 = Dropout(self.dropout_factor)(op_4)
-            op_4 = Dense(64,activation='relu', kernel_regularizer = self.l2_reg)(op_4)
-            op_4 = Dropout(self.dropout_factor)(op_4)
-            op_4 = Dense(128,activation='relu', kernel_regularizer = self.l2_reg)(op_4)
-            op_4 = Dropout(self.dropout_factor)(op_4)
-            op_4 = Dense(256,activation='relu', kernel_regularizer = self.l2_reg)(op_4)
-
-            v_1 = Dense(1, activation="linear")(op_1)
-            v_2 = Dense(1, activation="linear")(op_2)
-            v_3 = Dense(1, activation="linear")(op_3)
-            v_4 = Dense(1, activation="linear")(op_4)
-
-            average = Average()([v_1, v_2, v_3, v_4])
-
-            output_critic = average
-            
-            criticModel = Model(inputs=[input_layer_1, input_layer_2] , outputs=output_critic)
+        x = Dense(256, activation='relu', kernel_regularizer = self.l2_reg)(input_layer_1)
+        x = LSTM(64, return_sequences=True, kernel_regularizer = self.l2_reg)(x)
+        y = Flatten()(x)
+        output_critic = Dense(1, activation='linear')(y)
+        criticModel = Model(inputs=input_layer_1 , outputs=output_critic)
 
         opt = Adam(lr=self.critic_learning_rate, amsgrad=True)
         criticModel.compile(loss='mse', optimizer=opt)
@@ -179,7 +103,7 @@ class MA2C:
 
         return act, act_one_hot
 
-    def train(self, summary_writer, episodes = 10000, log = True, test = False):
+    def train(self, episodes = 10000):
         self.env.create_env_connection()
         lanes = traci.edge.getIDList()
 
@@ -249,20 +173,15 @@ class MA2C:
                 td_target = {i: np.array([reward[i]]) + self.gamma*PRN for i, PRN in zip(predict_next_reward, predict_next_reward.values())}
                 td_error = {i: td_target[i] - predict_reward[i] for i in predict_reward.keys()}
 
-                if not test:
-                    for i in self.env.networkDict:
-                        self.agents[i]['critic'].train_on_batch(old_state[i], td_target[i])
+                for i in self.env.networkDict:
+                    self.agents[i]['critic'].train_on_batch(old_state[i], td_target[i])
 
-                        input_list = old_state[i][:]
-                        input_list.append(act_one_hot_dict[i].copy())
-                        self.agents[i]['actor'].train_on_batch(input_list,[self.dummy_act_picked,td_error[i]])
+                    input_list = old_state[i][:]
+                    input_list.append(act_one_hot_dict[i].copy())
+                    self.agents[i]['actor'].train_on_batch(input_list,[self.dummy_act_picked,td_error[i]])
 
                 old_state = next_state
             avg_reward = mean((np.array(mean_reward[list(reward.keys())[0]]) + np.array(mean_reward[list(reward.keys())[1]]))/2)
-            if log:
-                score = tfSummary('score', avg_reward)
-                summary_writer.add_summary(score, global_step=e)
-                summary_writer.flush()
             
             tqdm_e.set_description("Score: " + str(avg_reward))
             tqdm_e.refresh()
@@ -450,4 +369,4 @@ class MA2C:
             
         self.env.close_env_connection()
         return t, wait_time, average_wait_time, veh_num, emergency_wait_time, average_emergency_wait_time, emergency_veh_num
-        
+

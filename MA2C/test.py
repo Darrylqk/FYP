@@ -1,6 +1,5 @@
 from  RL_agent.algorithms.MA2C_simple.ma2c import MA2C
 from Interface.sumo_interface import sumoEnv
-from utils.write_to_csv import write_to_csv
 
 import os
 import sys
@@ -23,12 +22,12 @@ set_session(sess)
 architecture = 'my_net'
 
 demand = 1.0
-vehicle_rate = 5.0
+vehicle_rate = 2.0
 
-env = sumoEnv(gui=False, folder="monash_intersection",
+env = sumoEnv(gui=True, folder="monash_intersection",
               maxEnvSteps=3600, demand = demand,
-              randomizeRoutes=False, constant_demand = False, vehicle_rate = vehicle_rate)
-agents = MA2C(env, 13, 3, 5, architecture=architecture)
+              constant_demand = False, vehicle_rate = vehicle_rate)
+agents = MA2C(env, 13, 3, 5)
 env.create_env_connection()
 env.restart_env()
 env.close_env_connection()

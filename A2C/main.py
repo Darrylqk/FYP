@@ -25,7 +25,6 @@ print(keras.__version__)
 
 
 set_session(sess)
-summary_writer = tf.summary.FileWriter("./tensorboard_logs")
 
 #architecture='deep_trafficnet_PO4'
 architecture = 'my_net'
@@ -34,8 +33,8 @@ demand = 1
 
 wandb.init(name=architecture + '_single_3_tp_' + str(0.8), project='fyp')
 
-env = sumoEnv(gui=False, folder="single_intersection", maxEnvSteps=3600, demand=demand , randomizeRoutes=False, constant_demand = True, vehicle_rate = 0.8)
+env = sumoEnv(gui=True, folder="single_intersection", maxEnvSteps=3600, demand=demand, constant_demand = True, vehicle_rate = 0.8)
 intersection = env.intersections[0]
 
-agent = A2C(17, 4, 5, env.networkDict[intersection], intersection, architecture=architecture)
-agent.train(env, summary_writer, log=True, test=False, episodes=10000)
+agent = A2C(17, 4, 5, env.networkDict[intersection], intersection)
+agent.train(env, episodes=10000)

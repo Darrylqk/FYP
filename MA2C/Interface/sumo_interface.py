@@ -17,11 +17,9 @@ import traci.constants as tc
 class sumoEnv(object):
     def __init__(self,
                 folder = "",
-                generate_summary_file=None,
                 gui = False,
                 maxEnvSteps = 3600,
                 demand = 1.0,
-                randomizeRoutes = False,
                 greenPhaseTime = 60,
                 constant_demand = True,
                 vehicle_rate = 1.0):
@@ -40,10 +38,6 @@ class sumoEnv(object):
         
         if len(folder): self.sumoFolder = os.path.join(self.sumoFolder, folder)
 
-        if generate_summary_file:
-            self.summaryFile = os.path.join(self.sumoFolder, "summaries")
-            self.summaryFile = os.path.join(self.summaryFile, f"{generate_summary_file}.xml")
-
         os.chdir(self.sumoFolder)
         cfgFile = glob.glob("*.sumocfg")[0]
         addFile = glob.glob("*.add.xml")[0]
@@ -52,40 +46,23 @@ class sumoEnv(object):
         sumocfgPath = os.path.join(self.sumoFolder, cfgFile)
         sumoAddPath = os.path.join(self.sumoFolder, addFile)
 
-        if generate_summary_file:
-            self.sumoCmd = [sumoBinary,  "-c", sumocfgPath,
-                                    "-a", sumoAddPath,
-                                    "--random-depart-offset", "5",
-                                    "--seed", randomNumber,
-                                    "--random",
-                                    "-v", "false",
-                                    "--no-warnings",
-                                    "--start",
-                                    "--time-to-teleport","300",
-                                    "--summary", self.summaryFile,
-                                    "--waiting-time-memory", "10000",
-                                    "--no-step-log", "True",
-                                    "--scale", str(demand),
-                                    "--eager-insert"]
-        else:
-            self.sumoCmd = [sumoBinary,  "-c", sumocfgPath,
-                                    "-a", sumoAddPath,
-                                    "--random-depart-offset", "5",
-                                    "--seed", randomNumber,
-                                    "--random",
-                                    "-v", "false",
-                                    "--no-warnings",
-                                    "--start",
-                                    "--time-to-teleport","300",
-                                    "--waiting-time-memory", "10000",
-                                    "--no-step-log", "True",
-                                    "--scale", str(demand),
-                                    "--eager-insert"]
+        self.sumoCmd = [sumoBinary,  "-c", sumocfgPath,
+                                "-a", sumoAddPath,
+                                "--random-depart-offset", "5",
+                                "--seed", randomNumber,
+                                "--random",
+                                "-v", "false",
+                                "--no-warnings",
+                                "--start",
+                                "--time-to-teleport","300",
+                                "--waiting-time-memory", "10000",
+                                "--no-step-log", "True",
+                                "--scale", str(demand),
+                                "--eager-insert"]
 
 
         self.greenPhaseTime = greenPhaseTime
         self.yellowPhaseTime = 3
-        self.randomizeRoutes = randomizeRoutes
         self.vehicles = dict()
 
         self.networkDict = {'jt1': ['-l1.2', 'l2.2', 'l3.1'], 'jt2': ['-l3.3', 'l4.2', 'l5.2']}
@@ -241,57 +218,34 @@ class sumoEnv(object):
     def perform_actions(self, action_dict, benchmark=False):
         yellow_light_flag = False
 
-        if not benchmark:
-            for intersection, action in zip(action_dict, list(action_dict.values())):
-                if action != self.past_action[intersection]:
-                    current_phase = traci.trafficlight.getPhase(intersection)
-                    if current_phase == 0 and action == 2:
-                        traci.trafficlight.setPhase(intersection, current_phase + 2)
-                    elif current_phase == 3 and action == 1:
-                        traci.trafficlight.setPhase(intersection, current_phase + 2)
-                    else:
-                        traci.trafficlight.setPhase(intersection, current_phase + 1)
+        for intersection, action in zip(action_dict, list(action_dict.values())):
+            if action != self.past_action[intersection]:
+                current_phase = traci.trafficlight.getPhase(intersection)
+                if current_phase == 0 and action == 2:
+                    traci.trafficlight.setPhase(intersection, current_phase + 2)
+                elif current_phase == 3 and action == 1:
+                    traci.trafficlight.setPhase(intersection, current_phase + 2)
+                else:
+                    traci.trafficlight.setPhase(intersection, current_phase + 1)
                     
-                    for _ in range(self.yellowPhaseTime):
-                        self.sumo_step()
-                    
-                    if  action == 0:
-                        traci.trafficlight.setPhase(intersection, 6)
-                    elif action == 1:
-                        traci.trafficlight.setPhase(intersection, 0)
-                    elif action == 2:
-                        traci.trafficlight.setPhase(intersection, 3)
+                for _ in range(self.yellowPhaseTime):
+                    self.sumo_step()
+                   
+                if  action == 0:
+                    traci.trafficlight.setPhase(intersection, 6)
+                elif action == 1:
+                    traci.trafficlight.setPhase(intersection, 0)
+                elif action == 2:
+                    traci.trafficlight.setPhase(intersection, 3)
                         
-                else:
-                    if  action == 0:
-                        traci.trafficlight.setPhase(intersection, 6)
-                    elif action == 1:
-                        traci.trafficlight.setPhase(intersection, 0)
-                    elif action == 2:
-                        traci.trafficlight.setPhase(intersection, 3)
+            else:
+                if  action == 0:
+                    traci.trafficlight.setPhase(intersection, 6)
+                elif action == 1:
+                    traci.trafficlight.setPhase(intersection, 0)
+                elif action == 2:
+                    traci.trafficlight.setPhase(intersection, 3)
 
                 self.past_action[intersection] = action
 
-        else:
-            for intersection, action in zip(action_dict, list(action_dict.values())):
-                if action != self.past_action[intersection]:
-                    current_phase = traci.trafficlight.getPhase(intersection)
-                    if current_phase == 0 and action == 2:
-                        traci.trafficlight.setPhase(intersection, current_phase + 2)
-                    elif current_phase == 3 and action == 1:
-                        traci.trafficlight.setPhase(intersection, current_phase + 2)
-                    else:
-                        traci.trafficlight.setPhase(intersection, current_phase + 1)
-                    yellow_light_flag = True
-                else:
-                    if  action == 0:
-                        traci.trafficlight.setPhase(intersection, 6)
-                    elif  action == 1:
-                        traci.trafficlight.setPhase(intersection, 0)
-                    elif action == 2:
-                        traci.trafficlight.setPhase(intersection, 3)
-
-                self.past_action[intersection] = action
-
-            return yellow_light_flag
 
